@@ -1,3 +1,0 @@
-[build]
-entry = "index.ts"
-outdir = "dist"
