@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { 
   getOverallMetrics, 
   getUserMetrics, 
@@ -10,10 +10,10 @@ import {
 } from '../api/analytics-api';
 
 export function useAnalytics() {
-  const overallMetricsQuery = useQuery('overallMetrics', getOverallMetrics);
-  const userMetricsQuery = useQuery('userMetrics', getUserMetrics);
-  const regionMetricsQuery = useQuery('regionMetrics', getRegionMetrics);
-  const walletMetricsQuery = useQuery('walletMetrics', getWalletMetrics);
+  const overallMetricsQuery = useQuery({ queryKey: ['overallMetrics'], queryFn: getOverallMetrics });
+  const userMetricsQuery = useQuery({ queryKey: ['userMetrics'], queryFn: getUserMetrics });
+  const regionMetricsQuery = useQuery({ queryKey: ['regionMetrics'], queryFn: getRegionMetrics });
+  const walletMetricsQuery = useQuery({ queryKey: ['walletMetrics'], queryFn: getWalletMetrics });
 
   return {
     overallMetricsQuery,
@@ -24,11 +24,9 @@ export function useAnalytics() {
 }
 
 export function useTimelineMetrics(startDate?: string, endDate?: string) {
-  return useQuery(
-    ['timelineMetrics', startDate, endDate], 
-    () => getTimelineMetrics(startDate, endDate),
-    {
-      enabled: !!startDate && !!endDate
-    }
-  );
+  return useQuery({
+    queryKey: ['timelineMetrics', startDate, endDate],
+    queryFn: () => getTimelineMetrics(startDate, endDate),
+    enabled: !!startDate && !!endDate
+  });
 }

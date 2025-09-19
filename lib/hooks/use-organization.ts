@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { 
     getUserOrganizations, 
@@ -25,25 +25,22 @@ export function useOrganizations() {
     const queryClient = useQueryClient();
     const { user, setUser } = useAuthStore();
 
-    const organizationsQuery = useQuery(
-        'user-organizations',
-        getUserOrganizations,
-        {
-            enabled: !!user,
-            staleTime: 5 * 60 * 1000, // 5 minutes
-        }
-    );
+    const organizationsQuery = useQuery({
+        queryKey: ['user-organizations'],
+        queryFn: getUserOrganizations,
+        enabled: !!user,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    const requestsQuery = useQuery(
-        'organization-requests',
-        getUserOrganizationRequests,
-        {
-            enabled: !!user,
-            staleTime: 60 * 1000, // 1 minute
-        }
-    );
+    const requestsQuery = useQuery({
+        queryKey: ['organization-requests'],
+        queryFn: getUserOrganizationRequests,
+        enabled: !!user,
+        staleTime: 60 * 1000, // 1 minute
+    });
 
-    const switchOrgMutation = useMutation(switchOrganization, {
+    const switchOrgMutation = useMutation({
+        mutationFn: switchOrganization,
         onSuccess: (data: { organization: Organization }) => {
             setUser({
                 ...user!,
@@ -53,8 +50,8 @@ export function useOrganizations() {
             
             toast.success(`Changed to ${data.organization.name}`);
             
-            queryClient.invalidateQueries('events');
-            queryClient.invalidateQueries('analytics');
+            queryClient.invalidateQueries({ queryKey: ['events'] });
+            queryClient.invalidateQueries({ queryKey: ['analytics'] });
         },
         onError: (error: ApiError) => {
             toast.error(
@@ -63,10 +60,11 @@ export function useOrganizations() {
         },
     });
 
-    const createRequestMutation = useMutation(createOrganizationRequest, {
+    const createRequestMutation = useMutation({
+        mutationFn: createOrganizationRequest,
         onSuccess: () => {
             toast.success('Organization request sent successfully');
-            queryClient.invalidateQueries('organization-requests');
+            queryClient.invalidateQueries({ queryKey: ['organization-requests'] });
         },
         onError: (error: ApiError) => {
             toast.error(
@@ -89,8 +87,8 @@ export function useOrganizations() {
         
         isLoadingOrganizations: organizationsQuery.isLoading,
         isLoadingRequests: requestsQuery.isLoading,
-        isSwitching: switchOrgMutation.isLoading,
-        isCreatingRequest: createRequestMutation.isLoading,
+        isSwitching: switchOrgMutation.isPending,
+        isCreatingRequest: createRequestMutation.isPending,
 
         organizationsError: organizationsQuery.error,
         requestsError: requestsQuery.error,
